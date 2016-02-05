@@ -21,7 +21,6 @@ def mylistdir(directory):
             if not (x.startswith('.'))]
 #given training sample path, return extracted features and corresponding feature label
 def TrainingSampleFeaturesGenerator(train_path):
-	print train_path
 	training_names = mylistdir(train_path)
 	image_paths = []
 	image_classes = []
@@ -30,8 +29,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    dir = os.path.join(train_path, training_name)
 	    class_path = imutils.imlist(dir)
 	    image_paths+=class_path
-	    image_classes+=[class_id]*len(class_path)
-	    class_id+=1
+	    image_classes+=[training_name]*len(class_path)
 
 	# List where all the descriptors are stored
 	des_list = []
@@ -54,7 +52,6 @@ def TrainingSampleFeaturesGenerator(train_path):
 	im_features = np.zeros((len(image_paths), k), "float32")
 	for i in xrange(len(image_paths)):
 	    words, distance = vq(des_list[i][1],voc)
-	    print words
 	    for w in words:
 	        im_features[i][w] += 1
 	# Scaling the words
