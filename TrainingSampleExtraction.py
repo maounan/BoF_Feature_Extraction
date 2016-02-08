@@ -96,8 +96,8 @@ def TestSampleFeaturesGenerator(image_path):
 
 	return test_features
 
-im_features, image_classes = TrainingSampleFeaturesGenerator("/Users/maounan/GitHub/BoF_Feature_Extraction/dataset/train")
-test_features = TestSampleFeaturesGenerator("/Users/maounan/GitHub/BoF_Feature_Extraction/dataset/test")
+im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
+test_features = TestSampleFeaturesGenerator("dataset/test")
 print im_features
 print image_classes
 print test_features
