@@ -4,6 +4,7 @@ import cv2
 import imutils 
 import numpy as np
 import os
+import csv
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 from scipy.cluster.vq import *
@@ -60,6 +61,17 @@ def TrainingSampleFeaturesGenerator(train_path):
 
 	# Save the SVM
 	joblib.dump((stdSlr, k, voc), "bof.pkl", compress=3)   
+	print len(im_features)
+	print len(image_classes)
+	image_classes = np.reshape(image_classes, (-1,1))
+	res = np.append(im_features, image_classes, axis = 1)
+	fl = open('FeatureSample.csv', 'w')
+
+	writer = csv.writer(fl)
+	for values in res:
+	    writer.writerow(values)
+
+	fl.close() 
 	return im_features,  image_classes
 
 
@@ -93,7 +105,13 @@ def TestSampleFeaturesGenerator(image_path):
 
 	# Scale the features
 	test_features = stdSlr.transform(test_features)
+	fl = open('TestFeature.csv', 'w')
 
+	writer = csv.writer(fl)
+	for values in test_features:
+	    writer.writerow(values)
+
+	fl.close() 
 	return test_features
 
 im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
