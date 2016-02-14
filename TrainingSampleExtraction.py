@@ -9,7 +9,7 @@ from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 from scipy.cluster.vq import *
 from sklearn.preprocessing import StandardScaler
-
+from matplotlib import pyplot as plt
 
 np.set_printoptions(threshold=np.nan)
 sift = cv2.xfeatures2d.SIFT_create()
@@ -34,12 +34,27 @@ def TrainingSampleFeaturesGenerator(train_path):
 
 	# List where all the descriptors are stored
 	des_list = []
-
+	HH = []
 	for image_path in image_paths:
 	    im = cv2.imread(image_path)
 	    kpts, des = sift.detectAndCompute(im, None)
-	    des_list.append((image_path, des))   
+	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+	    H = []
+	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
+	    n_hue = sum(h_hue)
+	    for h in h_hue:
+	        hh = np.float32(float(h)/float(n_hue))
+	        H.append(hh)
 	    
+	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
+	    n_sat = sum(h_sat)
+	    for h in h_sat:
+	        hh = np.float32(float(h)/float(n_sat))
+	        H.append(hh)
+	    HH.append(H) 
+	    des_list.append((image_path, des))   
+	
+	print HH    
 	# Stack all the descriptors vertically in a numpy array
 	descriptors = des_list[0][1]
 	for image_path, descriptor in des_list[1:]:
@@ -64,6 +79,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	print len(im_features)
 	print len(image_classes)
 	image_classes = np.reshape(image_classes, (-1,1))
+	im_features = np.append(im_features, HH, axis = 1)
 	res = np.append(im_features, image_classes, axis = 1)
 	fl = open('FeatureSample.csv', 'w')
 
@@ -82,13 +98,27 @@ def TestSampleFeaturesGenerator(image_path):
 	image_paths = imutils.imlist(image_path)
 # List where all the descriptors are stored
 	des_list = []
-
+	HH = []
 	for image_path in image_paths:
 	    im = cv2.imread(image_path)
 	    if im == None:
 	        print "No such file {}\nCheck if the file exists".format(image_path)
 	        exit()
 	    kpts, des = sift.detectAndCompute(im, None)
+	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
+	    H = []
+	    n_hue = sum(h_hue)
+	    for h in h_hue:
+	        hh = np.float32(float(h)/float(n_hue))
+	        H.append(hh)
+	    
+	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
+	    n_sat = sum(h_sat)
+	    for h in h_sat:
+	        hh = np.float32(float(h)/float(n_sat))
+	        H.append(hh) 
+	    HH.append(H)
 	    des_list.append((image_path, des))   
 
 	# Stack all the descriptors vertically in a numpy array
@@ -105,6 +135,7 @@ def TestSampleFeaturesGenerator(image_path):
 
 	# Scale the features
 	test_features = stdSlr.transform(test_features)
+	test_features = np.append(test_features, HH, axis = 1)
 	fl = open('TestFeature.csv', 'w')
 
 	writer = csv.writer(fl)
@@ -114,9 +145,35 @@ def TestSampleFeaturesGenerator(image_path):
 	fl.close() 
 	return test_features
 
+
 im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
 test_features = TestSampleFeaturesGenerator("dataset/test")
-print im_features
-print image_classes
-print test_features
-	    
+g1 = np.uint8([[[150,120,150]]])
+hsv_g1 = cv2.cvtColor(g1,cv2.COLOR_BGR2HSV)
+print hsv_g1
+
+
+g2 = np.uint8([[[195,190,200]]])
+hsv_g2 = cv2.cvtColor(g2,cv2.COLOR_BGR2HSV)
+print hsv_g2
+
+
+# path = "dataset/test/"
+# #GBR
+# image_paths = mylistdir(path)
+# print image_paths
+# for filename in image_paths:
+# 	print filename
+# 	image = cv2.imread(path + filename)
+# 	hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
+
+# 	lower_blue = np.array([20,0,80])
+# 	upper_blue = np.array([180,255,255])
+
+# 	 # Threshold the HSV image to get only blue colors
+# 	mask = cv2.inRange(hsv, lower_blue, upper_blue)
+	 
+# 	# Bitwise-AND mask and original image
+# 	res = cv2.bitwise_and(image,image, mask= mask)
+# 	cv2.imshow('res',res)
+# 	cv2.waitKey(0)
