@@ -39,6 +39,8 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    im = cv2.imread(image_path)
 	    kpts, des = sift.detectAndCompute(im, None)
 	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+	    kernel = np.ones((50,50),np.float32)/2500
+	    hsv = cv2.filter2D(hsv,-1,kernel)
 	    H = []
 	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
 	    n_hue = sum(h_hue)
@@ -106,6 +108,8 @@ def TestSampleFeaturesGenerator(image_path):
 	        exit()
 	    kpts, des = sift.detectAndCompute(im, None)
 	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+	    kernel = np.ones((50,50),np.float32)/2500
+	    hsv = cv2.filter2D(hsv,-1,kernel)
 	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
 	    H = []
 	    n_hue = sum(h_hue)
@@ -146,8 +150,8 @@ def TestSampleFeaturesGenerator(image_path):
 	return test_features
 
 
-im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
-test_features = TestSampleFeaturesGenerator("dataset/test")
+# im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
+# test_features = TestSampleFeaturesGenerator("dataset/test")
 g1 = np.uint8([[[150,120,150]]])
 hsv_g1 = cv2.cvtColor(g1,cv2.COLOR_BGR2HSV)
 print hsv_g1
@@ -156,6 +160,34 @@ print hsv_g1
 g2 = np.uint8([[[195,190,200]]])
 hsv_g2 = cv2.cvtColor(g2,cv2.COLOR_BGR2HSV)
 print hsv_g2
+
+filepath = "data/test/Cymbalta_10.jpg"
+# hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+img = cv2.imread('Lexapro_01.jpg')
+hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+kernel = np.ones((50,50),np.float32)/2500
+dst = cv2.filter2D(hsv,-1,kernel)
+
+h_hue = cv2.calcHist( [dst], [0], None, [180], [0, 180] )
+H = []
+n_hue = sum(h_hue)
+for h in h_hue:
+	hh = np.float32(float(h)/float(n_hue))
+	H.append(hh)
+h_sat = cv2.calcHist( [dst], [1], None, [256], [0, 256] )
+n_sat = sum(h_sat)
+for h in h_sat:
+	hh = np.float32(float(h)/float(n_sat))
+	H.append(hh) 
+
+X = []
+i = 0
+for a in H:
+	X.append(i)
+	i = i + 1
+
+plt.plot(X, H)
+plt.show()
 
 
 # path = "dataset/test/"
