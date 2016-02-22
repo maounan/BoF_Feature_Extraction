@@ -32,6 +32,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    image_paths+=class_path
 	    image_classes+=[training_name]*len(class_path)
 
+	print image_paths
 	# List where all the descriptors are stored
 	des_list = []
 	HH = []
@@ -77,9 +78,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	im_features = stdSlr.transform(im_features)
 
 	# Save the SVM
-	joblib.dump((stdSlr, k, voc), "bof.pkl", compress=3)   
-	print len(im_features)
-	print len(image_classes)
+	joblib.dump((stdSlr, k, voc), "bof.pkl", compress=3)
 	image_classes = np.reshape(image_classes, (-1,1))
 	im_features = np.append(im_features, HH, axis = 1)
 	res = np.append(im_features, image_classes, axis = 1)
@@ -91,6 +90,71 @@ def TrainingSampleFeaturesGenerator(train_path):
 
 	fl.close() 
 	return im_features,  image_classes
+
+def TestSampleFeaturesGeneratorWithLabel(train_path):
+	stdSlr, k, voc = joblib.load("bof.pkl")
+	training_names = mylistdir(train_path)
+	image_paths = []
+	image_classes = []
+	class_id = 0
+	for training_name in training_names:
+	    dir = os.path.join(train_path, training_name)
+	    class_path = imutils.imlist(dir)
+	    image_paths+=class_path
+	    image_classes+=[training_name]*len(class_path)
+	des_list = []
+	HH = []
+	for image_path in image_paths:
+	    im = cv2.imread(image_path)
+	    if im == None:
+	        print "No such file {}\nCheck if the file exists".format(image_path)
+	        exit()
+	    kpts, des = sift.detectAndCompute(im, None)
+	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
+	    kernel = np.ones((50,50),np.float32)/2500
+	    hsv = cv2.filter2D(hsv,-1,kernel)
+	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
+	    H = []
+	    n_hue = sum(h_hue)
+	    for h in h_hue:
+	        hh = np.float32(float(h)/float(n_hue))
+	        H.append(hh)
+	    
+	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
+	    n_sat = sum(h_sat)
+	    for h in h_sat:
+	        hh = np.float32(float(h)/float(n_sat))
+	        H.append(hh) 
+	    HH.append(H)
+	    des_list.append((image_path, des))   
+
+	# Stack all the descriptors vertically in a numpy array
+	# print des_list
+	descriptors = des_list[0][1]
+	for image_path, descriptor in des_list[0:]:
+	    descriptors = np.vstack((descriptors, descriptor)) 
+	# 
+	test_features = np.zeros((len(image_paths), k), "float32")
+	for i in xrange(len(image_paths)):
+	    words, distance = vq(des_list[i][1],voc)
+	    for w in words:
+	        test_features[i][w] += 1
+
+	# Scale the features
+	test_features = stdSlr.transform(test_features)
+	image_classes = np.reshape(image_classes, (-1,1))
+	test_features = np.append(test_features, HH, axis = 1)
+	res = np.append(test_features, image_classes, axis = 1)
+	fl = open('TestFeatureWithLabel.csv', 'w')
+
+	writer = csv.writer(fl)
+	for values in res:
+	    writer.writerow(values)
+
+	fl.close() 
+	return res
+
+
 
 
 #given test sample, return test sample features,
@@ -150,7 +214,7 @@ def TestSampleFeaturesGenerator(image_path):
 	return test_features
 
 
-# im_features, image_classes = TrainingSampleFeaturesGenerator("dataset/train")
+im_features = TestSampleFeaturesGeneratorWithLabel("dataset/train")
 # test_features = TestSampleFeaturesGenerator("dataset/test")
 g1 = np.uint8([[[150,120,150]]])
 hsv_g1 = cv2.cvtColor(g1,cv2.COLOR_BGR2HSV)
