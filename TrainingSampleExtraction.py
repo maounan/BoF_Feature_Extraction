@@ -33,6 +33,8 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    image_classes+=[training_name]*len(class_path)
 
 	print image_paths
+	image_names = np.reshape(image_paths, (-1,1))
+	print image_names
 	# List where all the descriptors are stored
 	des_list = []
 	HH = []
@@ -57,7 +59,6 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    HH.append(H) 
 	    des_list.append((image_path, des))   
 	
-	print HH    
 	# Stack all the descriptors vertically in a numpy array
 	descriptors = des_list[0][1]
 	for image_path, descriptor in des_list[1:]:
@@ -82,6 +83,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	image_classes = np.reshape(image_classes, (-1,1))
 	im_features = np.append(im_features, HH, axis = 1)
 	res = np.append(im_features, image_classes, axis = 1)
+	res = np.append(image_names, res, axis = 1)
 	fl = open('FeatureSample.csv', 'w')
 
 	writer = csv.writer(fl)
@@ -104,6 +106,9 @@ def TestSampleFeaturesGeneratorWithLabel(train_path):
 	    image_classes+=[training_name]*len(class_path)
 	des_list = []
 	HH = []
+	print image_paths
+	image_names = np.reshape(image_paths, (-1,1))
+	print image_names
 	for image_path in image_paths:
 	    im = cv2.imread(image_path)
 	    if im == None:
@@ -145,6 +150,7 @@ def TestSampleFeaturesGeneratorWithLabel(train_path):
 	image_classes = np.reshape(image_classes, (-1,1))
 	test_features = np.append(test_features, HH, axis = 1)
 	res = np.append(test_features, image_classes, axis = 1)
+	res = np.append(image_names, res, axis = 1)
 	fl = open('TestFeatureWithLabel.csv', 'w')
 
 	writer = csv.writer(fl)
@@ -250,8 +256,8 @@ for a in H:
 	X.append(i)
 	i = i + 1
 
-plt.plot(X, H)
-plt.show()
+# plt.plot(X, H)
+# plt.show()
 
 
 # path = "dataset/test/"
