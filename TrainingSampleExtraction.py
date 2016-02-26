@@ -40,24 +40,31 @@ def TrainingSampleFeaturesGenerator(train_path):
 	HH = []
 	for image_path in image_paths:
 	    im = cv2.imread(image_path)
+	    if im == None:
+	        print "No such file {}\nCheck if the file exists".format(image_path)
+	        exit()
 	    kpts, des = sift.detectAndCompute(im, None)
 	    hsv = cv2.cvtColor(im,cv2.COLOR_BGR2HSV)
 	    kernel = np.ones((50,50),np.float32)/2500
 	    hsv = cv2.filter2D(hsv,-1,kernel)
-	    H = []
 	    h_hue = cv2.calcHist( [hsv], [0], None, [180], [0, 180] )
+	    H = []
 	    n_hue = sum(h_hue)
 	    for h in h_hue:
 	        hh = np.float32(float(h)/float(n_hue))
 	        H.append(hh)
-	    
 	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
+	    temp = []
+	    temp.append(np.std(H, ddof = 1))
+	    H = []
 	    n_sat = sum(h_sat)
 	    for h in h_sat:
 	        hh = np.float32(float(h)/float(n_sat))
 	        H.append(hh)
-	    HH.append(H) 
+	    temp.append(np.std(H,ddof = 1))
+	    HH.append(temp)
 	    des_list.append((image_path, des))   
+
 	
 	# Stack all the descriptors vertically in a numpy array
 	descriptors = des_list[0][1]
@@ -83,7 +90,7 @@ def TrainingSampleFeaturesGenerator(train_path):
 	image_classes = np.reshape(image_classes, (-1,1))
 	im_features = np.append(im_features, HH, axis = 1)
 	res = np.append(im_features, image_classes, axis = 1)
-	res = np.append(image_names, res, axis = 1)
+	# res = np.append(image_names, res, axis = 1)
 	fl = open('FeatureSample.csv', 'w')
 
 	writer = csv.writer(fl)
@@ -124,15 +131,17 @@ def TestSampleFeaturesGeneratorWithLabel(train_path):
 	    for h in h_hue:
 	        hh = np.float32(float(h)/float(n_hue))
 	        H.append(hh)
-	    
 	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
+	    temp = []
+	    temp.append(np.std(H, ddof = 1))
+	    H = []
 	    n_sat = sum(h_sat)
 	    for h in h_sat:
 	        hh = np.float32(float(h)/float(n_sat))
-	        H.append(hh) 
-	    HH.append(H)
+	        H.append(hh)
+	    temp.append(np.std(H,ddof = 1))
+	    HH.append(temp)
 	    des_list.append((image_path, des))   
-
 	# Stack all the descriptors vertically in a numpy array
 	# print des_list
 	descriptors = des_list[0][1]
