@@ -56,13 +56,13 @@ def TrainingSampleFeaturesGenerator(train_path):
 	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
 	    temp = []
 	    temp.append(np.std(H, ddof = 1))
-	    H = []
+	    # H = []
 	    n_sat = sum(h_sat)
 	    for h in h_sat:
 	        hh = np.float32(float(h)/float(n_sat))
 	        H.append(hh)
 	    temp.append(np.std(H,ddof = 1))
-	    HH.append(temp)
+	    HH.append(H)
 	    des_list.append((image_path, des))   
 
 	
@@ -134,13 +134,13 @@ def TestSampleFeaturesGeneratorWithLabel(train_path):
 	    h_sat = cv2.calcHist( [hsv], [1], None, [256], [0, 256] )
 	    temp = []
 	    temp.append(np.std(H, ddof = 1))
-	    H = []
+	    # H = []
 	    n_sat = sum(h_sat)
 	    for h in h_sat:
 	        hh = np.float32(float(h)/float(n_sat))
 	        H.append(hh)
 	    temp.append(np.std(H,ddof = 1))
-	    HH.append(temp)
+	    HH.append(H)
 	    des_list.append((image_path, des))   
 	# Stack all the descriptors vertically in a numpy array
 	# print des_list
